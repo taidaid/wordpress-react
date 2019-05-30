@@ -1,140 +1,96 @@
 import React, { Component } from "react";
-import Header from "./components/Header";
+// import Header from "./components/Header";
 import Loading from "./components/Loading";
 import { PopupboxManager, PopupboxContainer } from "react-popupbox";
 import "../node_modules/react-popupbox/dist/react-popupbox.css";
 import "../node_modules/bulma/css/bulma.css";
 import "./App.css";
+import Section from "./components/Section";
 
 export default class App extends Component {
+  constructor(props) {
+    super(props);
+    this.myRef = null;
+  }
   state = {
     isOpen: false,
     sections: [],
     current: null,
-    dataRoute:
-      "https://unsplash-gallery.herokuapp.com/wordpress/?rest_route=/sections/v1/post"
+    dataRoute: "http://134.209.79.128/wp-json/wp/v2/posts"
   };
 
-  get scaledSections() {
-    const nbr = (this.state.sections.length / 3).toString().split(".");
-    const sections = [];
+  // Need to be able to reference the dynamically created elements that contain the images I
+  // want to center on. Then calculate the position of the image in relation to the viewport,
+  // determine which image is closest to center and then center the view on the image.
+  //   scrollToImageCenter(imageElements[]) {
+  //     checkvisible(imageElements[])
 
-    for (let i = 0; i < nbr[0]; i++) {
-      sections[i] = [];
+  //   }
 
-      for (let j = 1; j <= 3; j++) {
-        sections[i].push(this.state.sections[i * 3 + j - 1]);
-      }
-    }
+  //   viewPortHeight() {
+  //     var de = document.documentElement;
 
-    if (nbr[1]) {
-      const missing = nbr[1].startsWith("3") ? 1 : 2;
+  //     if(!!window.innerWidth)
+  //     { return window.innerHeight; }
+  //     else if( de && !isNaN(de.clientHeight) )
+  //     { return de.clientHeight; }
 
-      sections.push([]);
+  //     return 0;
+  // }
 
-      for (let k = 0; k < missing; k++) {
-        sections[sections.length - 1].push(this.state.sections[nbr[0] * 3 + k]);
-      }
-    }
+  // scrollY() {
+  //   if( window.pageYOffset ) { return window.pageYOffset; }
+  //   return Math.max(document.documentElement.scrollTop, document.body.scrollTop);
+  // }
 
-    return sections;
-  }
+  // posY(elm) {
+  //   var test = elm, top = 0;
 
-  async componentDidMount() {
-    // error handling is important when fetching data
-    try {
-      await fetch(this.state.dataRoute)
-        .then(res => res.json())
-        .then(sections =>
-          this.setState((prevState, props) => {
-            return { sections: sections.map(this.mapSection) };
-          })
-        );
-    } catch (error) {
-      console.log(error);
-    }
-  }
+  //   while(!!test && test.tagName.toLowerCase() !== "body") {
+  //       top += test.offsetTop;
+  //       test = test.offsetParent;
+  //   }
 
-  mapSection(section) {
-    return {
-      img: section.acf.image,
-      src: section.acf.image.url,
-      title: section.post_title,
-      key: section.post_title,
-      description: section.post_content,
-      author: {
-        name: section.acf.author_name,
-        link: section.acf.author_link
-      }
-    };
-  }
+  //   return top;
+  // }
 
-  openPopupbox(section) {
-    const content = (
-      <div>
-        <img
-          src={section.src}
-          width={section.img.sizes["large-width"]}
-          alt=""
-        />
-        <p>
-          {section.title} - {section.description}
-        </p>
-        <p>
-          <a href={section.author.link}>{section.author.name}</a>
-        </p>
-      </div>
-    );
+  // checkvisible( elm ) {
+  //   var vpH = viewPortHeight(), // Viewport Height
+  //       st = scrollY(), // Scroll Top
+  //       y = posY(elm);
 
-    PopupboxManager.open({ content });
-  }
+  //   return (y > (vpH + st));
+  // }
+
+  // openPopupbox(section) {
+  //   const content = (
+  //     <div>
+  //       <img
+  //         src={section.src}
+  //         width={section.img.sizes["large-width"]}
+  //         alt=""
+  //       />
+  //       <p>
+  //         {section.title} - {section.description}
+  //       </p>
+  //       <p>
+  //         <a href={section.author.link}>{section.author.name}</a>
+  //       </p>
+  //     </div>
+  //   );
+
+  //   PopupboxManager.open({ content });
+  // }
 
   render() {
     return (
       <div className="App">
-        <header className="App-header">
+        {/* <header className="App-header">
           <Header />
-        </header>
+        </header> */}
         {this.state.sections.length === 0 && <Loading />}
-        <div className="main">
-          {this.scaledSections.map((level, i) => (
-            <div className="columns" key={i}>
-              {level.map((section, j) => (
-                <div className="column" key={j}>
-                  <img
-                    className="image"
-                    alt=""
-                    src={section.src}
-                    height={section.img["small-height"]}
-                    onClick={() =>
-                      this.openPopupbox(this.state.sections[i * 3 + j])
-                    }
-                  />
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-
-        <footer>
-          <p>
-            Made with
-            <span role="img" aria-label="emoji">
-              💙
-            </span>
-            by
-            <span aria-label="separator">
-              <a href="https://snipcart.com/blog/reactjs-wordpress-rest-api-example">
-                Snipcart
-              </a>
-            </span>
-          </p>
-          <span aria-label="footer-links">
-            <a href="https://twitter.com/snipcart">Twitter</a>
-            <a href="https://github.com/snipcart/wordpress-react">GitHub</a>
-            <a href="https://facebook.com/snipcart">Facebook</a>
-          </span>
-        </footer>
+        <Section />
+        <footer>Bryan Windsor Ⓒ 2019</footer>
         <PopupboxContainer />
       </div>
     );
