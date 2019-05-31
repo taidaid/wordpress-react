@@ -1,159 +1,88 @@
 import React, { Component } from "react";
-import Header from "./components/Header";
-import Loading from "./components/Loading";
-import { PopupboxManager, PopupboxContainer } from "react-popupbox";
-import "../node_modules/react-popupbox/dist/react-popupbox.css";
-import "../node_modules/bulma/css/bulma.css";
 import "./App.css";
-/*
-Scroll To Plan
--Get the image heights, (store in Array?)
--For the first image, 
-  If the vertical scroll position exceeds 75% of image height,
-  Then for scrollTo second image 50% height
--Subsequent images (not last)
-  If the vertical scroll position exceeds 75% of image height,
-  Then for scrollTo second image 50% height
-  If the vertical scroll position is 0-25% of image height,
-  Then for scrollTo previous image 50% height
--Last image
-  If the vertical scroll position is 0-25% of image height,
-  Then for scrollTo previous image 50% height
-*/
+class App extends Component {
+  constructor() {
+    super();
+    this.post = React.createRef();
+    this.state = {
+      isOpen: false,
+      sections: [],
+      current: null,
+      dataRoute: "http://134.209.79.128/wp-json/sections/v1/post"
+    };
+  }
 
-export default class App extends Component {
-	state = {
-		isOpen: false,
-		sections: [],
-		current: null,
-		dataRoute: "http://134.209.79.128/wp-json/sections/v1/post"
-	};
+  componentDidMount() {
+    window.addEventListener("scroll", this.handleScroll);
+    console.log(this);
+    fetch(this.state.dataRoute)
+      .then(res => res.json())
+      .then(sections =>
+        this.setState((prevState, props) => {
+          return { sections: sections.map(this.mapSection) };
+        })
+      );
+  }
 
-	get scaledSections() {
-		const nbr = (this.state.sections.length / 3).toString().split(".");
-		const sections = [];
+  componentWillUnmount() {
+    window.removeEventListener("scroll", this.handleScroll);
+  }
 
-		for (let i = 0; i < nbr[0]; i++) {
-			sections[i] = [];
+  mapSection(section) {
+    return {
+      img: section.acf.image,
+      src: section.acf.image.url,
+      title: section.post_title,
+      key: section.post_title,
+      description: section.post_content,
+      author: {
+        name: section.acf.author_name,
+        link: section.acf.author_link
+      }
+    };
+  }
+  handleScroll() {
+    // for (let i of document.getElementsByClassName("column")) {
+    //   const computedStyles = window.getComputedStyle(i);
+    //   console.log(i.getBoundingClientRect());
+    // }
+    console.log(
+      document.getElementsByClassName("column")[1].getBoundingClientRect()
+    );
+  }
 
-			for (let j = 1; j <= 3; j++) {
-				sections[i].push(this.state.sections[i * 3 + j - 1]);
-			}
-		}
+  // throttled(delay, fn) {
+  //   let lastCall = 0;
+  //   return function(...args) {
+  //     const now = new Date().getTime();
+  //     if (now - lastCall < delay) {
+  //       return;
+  //     }
+  //     lastCall = now;
+  //     return fn(...args);
+  //   };
+  // }
 
-		if (nbr[1]) {
-			const missing = nbr[1].startsWith("3") ? 1 : 2;
+  // throttleEventHandler = this.throttled(500, this.handleScroll);
 
-			sections.push([]);
-
-			for (let k = 0; k < missing; k++) {
-				sections[sections.length - 1].push(this.state.sections[nbr[0] * 3 + k]);
-			}
-		}
-
-		return sections;
-	}
-
-	async componentDidMount() {
-		// error handling is important when fetching data
-		try {
-			await fetch(this.state.dataRoute)
-				.then(res => res.json())
-				.then(sections =>
-					this.setState((prevState, props) => {
-						return { sections: sections.map(this.mapSection) };
-					})
-				);
-		} catch (error) {
-			console.log(error);
-		}
-	}
-
-	mapSection(section) {
-		return {
-			img: section.acf.image,
-			src: section.acf.image.url,
-			title: section.post_title,
-			key: section.post_title,
-			description: section.post_content,
-			author: {
-				name: section.acf.author_name,
-				link: section.acf.author_link
-			}
-		};
-	}
-
-	openPopupbox(section) {
-		const content = (
-			<div>
-				<img
-					src={section.src}
-					width={section.img.sizes["large-width"]}
-					alt=""
-				/>
-				<p>
-					{section.title} - {section.description}
-				</p>
-				<p>
-					<a href={section.author.link}>{section.author.name}</a>
-				</p>
-			</div>
-		);
-
-		PopupboxManager.open({ content });
-	}
-
-	render() {
-		return (
-			<div className="App">
-				{/* <header className="App-header">
-					<Header />
-				</header> */}
-				{this.state.sections.length === 0 && <Loading />}
-				<div className="main">
-					{this.scaledSections.map((level, i) => (
-						<div className="center" key={i}>
-							{/* <div className="columns" key={i}> */}
-							{level.map((section, j) => (
-								<div key={j}>
-									{/* <div className="column" key={j}> */}
-
-									<img
-										className="image"
-										alt=""
-										src={section.src}
-										height={section.img["small-height"]}
-										onClick={() =>
-											this.openPopupbox(this.state.sections[i * 3 + j])
-										}
-									/>
-								</div>
-							))}
-						</div>
-					))}
-				</div>
-
-				{/* <footer>
-					<p>
-						Made with
-						<span role="img" aria-label="emoji">
-							💙
-						</span>
-						by
-						<span aria-label="separator">
-							<a href="https://snipcart.com/blog/reactjs-wordpress-rest-api-example">
-								Snipcart
-							</a>
-						</span>
-					</p>
-					<span aria-label="footer-links">
-						<a href="https://twitter.com/snipcart">Twitter</a>
-						<a href="https://github.com/snipcart/wordpress-react">GitHub</a>
-						<a href="https://facebook.com/snipcart">Facebook</a>
-					</span>
-				</footer> */}
-				<PopupboxContainer />
-			</div>
-		);
-	}
+  render() {
+    return (
+      <div className="App">
+        <div>
+          {console.log(this.state.sections)}
+          {this.state.sections.map((section, i) => (
+            <div className="column" key={i} id={i}>
+              <img
+                className="image"
+                alt=""
+                src={section.src}
+                height={section.img["small-height"]}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 }
+export default App;
