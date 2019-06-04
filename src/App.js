@@ -42,13 +42,29 @@ class App extends Component {
     };
   }
   handleScroll() {
-    // for (let i of document.getElementsByClassName("column")) {
-    //   const computedStyles = window.getComputedStyle(i);
-    //   console.log(i.getBoundingClientRect());
-    // }
-    console.log(
-      document.getElementsByClassName("column")[1].getBoundingClientRect()
-    );
+    const images = document.getElementsByClassName("column");
+    console.log(images);
+    for (let i = 0; i < images.length; i++) {
+      // const computedStyles = window.getComputedStyle(i);
+      if (
+        images[i].getBoundingClientRect().top >= 0 &&
+        images[i].getBoundingClientRect().bottom <= 0
+      ) {
+        console.log("image", i);
+        console.log("bottom", images[i].getBoundingClientRect().bottom);
+        console.log("top", images[i].getBoundingClientRect().top);
+      } else if (
+        images[i].getBoundingClientRect().top <= 0 &&
+        images[i].getBoundingClientRect().bottom >= 0
+      ) {
+        console.log("image", i);
+        console.log("bottom", images[i].getBoundingClientRect().bottom);
+        console.log("top", images[i].getBoundingClientRect().top);
+      }
+    }
+    // console.log(
+    //   document.getElementsByClassName("column")[1].getBoundingClientRect().top
+    // );
   }
 
   // throttled(delay, fn) {
